@@ -1,211 +1,307 @@
-# 🎵 Music Recommender Simulation
+# Playlist Assistant - Setup & Run Guide
 
-## Project Summary
+🎵 A music playlist management application powered by Google Gemini AI.
 
-In this project you will build and explain a small music recommender system.
+## Overview
+
+The **Playlist Assistant** is an AI-powered app that helps you manage music playlists intelligently. You describe a song and how it makes you feel, and the AI analyzes it to place it into matching playlists. The app can even suggest creating new playlists when nothing fits!
+Originally this was a music recommendation application. The application used a basic weight score recommender system to group songs by their genre, mood and energy. Recommendation reasoning was also incorporated into the final response for transparency.
 
 
-This version recommends songs based on user preferences for genre, mood, and energy. It scores each song using these features and returns the top matches. The system is simple and designed for classroom learning.
+## Project Goals
+
+- Build an end-to-end AI-assisted playlist manager that combines natural-language song descriptions with structured playlist metadata.
+- Use Gemini to make explainable playlist decisions (not just keyword matching).
+- Give users final control over additions by separating **strong** and **borderline** matches.
+- Persist all data locally in JSON so the system is easy to run, inspect, and demo.
+
+## New Features Implemented
+
+- **Explainable AI recommendations** with reasoning for each playlist match.
+- **Strong vs. borderline match categories** so users can review confidence before saving.
+- **New playlist suggestions** when no existing playlist is a good fit.
+- **Interactive playlist management UI** for creating playlists and removing songs.
+- **Preloaded starter data** so the app is immediately demo-ready.
+
+### Key Features
+
+- **Smart Song Analysis**: Describe a song's vibe, and Gemini AI generates mood tags and finds perfect playlist matches
+- **Playlist Management**: Create, view, and manage playlists with detailed metadata
+- **Strong/Borderline Matching**: AI classifies matches with reasoning, so you decide what goes where
+- **New Playlist Suggestions**: When no playlist fits, get AI suggestions for new playlists (with songs that also fit!)
+- **Beautiful Dark UI**: Clean, modern Streamlit interface with dark theme
+- **JSON-Based Storage**: All playlists stored locally in `playlists.json` (no database needed)
 
 ---
 
-## How The System Works
+## Setup
 
+### 1. Prerequisites
 
-Each Song uses genre, mood, and energy. UserProfile stores the user's preferred genre, mood, and energy. The Recommender scores songs by matching genre (+1.0), mood (+0.7), and energy similarity (closer is better). The top k songs are recommended.
+- Python 3.9+
+- A valid Google Gemini API key (free tier available)
 
+### 2. Install Dependencies
 
-Real-world recommendation systems like Spotify and Apple Music combine numerical similarity and categorical matching into a unified scoring framework, then apply a separate ranking layer to ensure the final list is diverse and engaging rather than just a stack of near-identical songs. Our recommendation system uses a two-layer approach inspired by real-world platforms like Spotify and Apple Music. First, we apply a Scoring Rule that combines both categorical and numerical features into a single composite score for each song:
-
-Genre Match: If a song’s genre matches the user’s preferred genre, it receives a bonus of +1.0 point.
-Mood Match: If a song’s mood matches the user’s preferred mood, it receives a bonus of +0.7 points.
-Energy Similarity: We calculate how close the song’s energy value is to the user’s target energy using the formula:
-energy_score = 1 - abs(song_energy - user_energy)
-This value ranges from 0 (least similar) to 1 (most similar).
-The final composite score for each song is the sum of these three components. This balanced weighting ensures that no single feature dominates the recommendations, allowing both categorical preferences (like genre and mood) and nuanced numerical similarity (energy) to influence the results.
-
-After scoring, we apply a Ranking Rule: all songs are sorted by their composite scores in descending order. The top results are selected as recommendations. This ranking step can also be extended to promote diversity and avoid recommending near-duplicate songs.
-
-Our Song class encapsulates all relevant song attributes, while the UserProfile class stores the user’s preferences. For each song, we compare its attributes to the user’s profile, compute a score, and then rank all songs to produce the final recommendations.
-
-### Potential Biases
-
-1. **Genre & Mood Popularity** — Common genres/moods dominate recommendations, crowding out underrepresented ones.
-2. **Feature Weighting** — Chosen weights are subjective and may not reflect every user's true preferences.
-3. **Energy Range** — The similarity formula assumes energy matters equally to all users across all genres.
-4. **Cold Start** — New or niche songs are less likely to surface since the system favors common preference matches.
-5. **Lack of Diversity** — Without explicit diversity enforcement, top results may be repetitively similar in artist or sub-genre.
-
-## Getting Started
-
-### Setup
-
-1. Create a virtual environment (optional but recommended):
-
-   ```bash
-   python -m venv .venv
-   source .venv/bin/activate      # Mac or Linux
-   .venv\Scripts\activate         # Windows
-
-2. Install dependencies
+Install all required packages:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-3. Run the app:
+This installs:
+- **streamlit** — Web UI framework
+- **google-genai** — Gemini API client
+- **python-dotenv** — Load environment variables
+- **pandas** — Data handling
+- **pytest** — Testing framework
 
-```bash
-python -m src.main
+### 3. Configure Your Gemini API Key
+
+1. Get your free API key from [Google AI Studio](https://aistudio.google.com/app/apikey)
+2. Create or open `.env` in the project root
+3. Add your API key:
+
+```env
+GEMINI_API_KEY=your_api_key_here
+GEMINI_MODEL=gemini-2.0-flash
 ```
 
-### Running Tests
+✅ **Your API key is already configured in `.env`** — you're ready to go!
 
-Run the starter tests with:
+Reference `.env.example` for optional settings.
+
+---
+
+## Running the App
+
+### Start the Streamlit App
+
+```bash
+streamlit run app.py
+```
+
+The app will open in your browser (usually `http://localhost:8501`).
+
+### First Launch
+
+On first launch, the app loads with **5 pre-populated playlists** and ~20 songs:
+
+- **Late Night Chill** — Mellow, introspective tracks (Flume, Bon Iver, Tycho, etc.)
+- **Workout Motivation** — High-energy bangers (Kanye, Dua Lipa, Survivor, etc.)
+- **Romantic Evening** — Sensual, intimate songs (Frank Ocean, Sade, Adele, etc.)
+- **Indie Discovery** — Quirky, artistic indie tracks (Tame Impala, Mac DeMarco, etc.)
+- **Morning Energy** — Uplifting, feel-good vibes (Pharrell, Katrina & The Waves, etc.)
+
+---
+
+## How to Use
+
+## Sample Input / Output
+
+Use the following example to demonstrate expected behavior.
+
+### Sample Input (user form)
+
+```text
+Song title: Nights
+Artist: Frank Ocean
+How it feels: introspective, moody, emotional late-night drive energy
+```
+
+### Sample Output (AI analysis result shown in app)
+
+```json
+{
+   "generated_mood_tags": ["moody", "introspective", "late-night", "emotional"],
+   "matches": {
+      "strong": [
+         {
+            "playlist": "Late Night Chill",
+            "reason": "The reflective and nocturnal vibe aligns directly with this playlist's mood profile."
+         }
+      ],
+      "borderline": [
+         {
+            "playlist": "Romantic Evening",
+            "reason": "Emotionally intimate tone overlaps, but overall energy is less romantic-focused."
+         }
+      ]
+   },
+   "suggest_new_playlist": null
+}
+```
+
+### Sample Final System Behavior
+
+- The app pre-checks **Late Night Chill** as a strong match.
+- The app leaves **Romantic Evening** unchecked as borderline.
+- After clicking **Confirm & Add Song**, a success message confirms the song was saved to selected playlists.
+
+### Mode 1: Add a Song (Default)
+
+1. **Enter Song Details:**
+   - Song title
+   - Artist name
+   - Description of how it makes you feel (e.g., "uplifting, chill vibes, perfect for morning runs")
+
+2. **Click "Find where this belongs"**
+   - Gemini analyzes the song and generates mood tags
+   - Shows matching playlists with **💚 Strong** and **🟡 Borderline** matches
+   - Each match includes reasoning from the AI
+
+3. **Review Matches:**
+   - Strong matches are pre-checked
+   - Borderline matches are unchecked (you decide)
+   - Or accept the suggestion to create a new playlist
+
+4. **Confirm & Add:**
+   - Click "Confirm & Add Song"
+   - Song is saved to all checked playlists
+   - Success message shows how many playlists were updated
+
+### Mode 2: View Playlist Details
+
+1. **Click any playlist in the sidebar** to see:
+   - Playlist name, vibe description, and mood tags
+   - All songs with their vibes and mood tags
+   - Option to remove songs
+
+2. **Click "← Back to Add Song"** to return to the main view
+
+### Create a New Playlist
+
+1. **In the sidebar**, expand **"➕ Create New Playlist"**
+2. Enter:
+   - Playlist name
+   - Vibe description (what's the feeling/purpose?)
+   - Select mood tags
+3. **Click "Create Playlist"** — now it's ready to receive songs!
+
+---
+
+## File Structure
+
+```
+playlist-assistant/
+├── app.py                 # Main Streamlit app (UI and controls)
+├── src/
+│   ├── __init__.py       # Package marker
+│   ├── agent.py          # Gemini API integration
+│   ├── playlist_manager.py  # JSON read/write operations
+│   ├── main.py           # (Original music recommender)
+│   └── recommender.py    # (Original music recommender)
+├── playlists.json        # Playlist data (auto-created with starter data)
+├── requirements.txt      # Python dependencies
+├── .env                  # API keys (NEVER commit this!)
+├── .env.example          # Template for .env
+└── README.md             # Original project README
+```
+
+---
+
+## API Integration (Gemini)
+
+The app uses **Google Gemini 2.0 Flash** to analyze songs. Here's what happens:
+
+1. **You describe a song's vibe** (e.g., "melancholy, reflective, great for late night")
+2. **Gemini receives:**
+   - The song title and artist
+   - Your description
+   - Your entire playlist library (with all songs and vibes)
+3. **Gemini responds with JSON:**
+   - Generated mood tags for the song
+   - Playlist matches (strong/borderline) with reasoning
+   - Optional suggestion for a new playlist
+4. **The app displays results** and lets you confirm/adjust before saving
+
+The system prompt guides Gemini to think deeply about vibes and feelings, not just keyword matching.
+
+---
+
+## Troubleshooting
+
+### "Missing GEMINI_API_KEY" Error
+
+**Solution:** Ensure `.env` exists in the project root with:
+```env
+GEMINI_API_KEY=your_api_key_here
+```
+
+### Streamlit imports not found
+
+**Solution:** Install dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+### "Invalid JSON from Gemini" Error
+
+**Solution:** The app retries once automatically. If it still fails, check:
+- Your API key is valid
+- You have credit/quota on your Gemini account
+- Network connection is stable
+
+### Playlists not persisting
+
+**Solution:** Ensure `playlists.json` has write permissions in the project root.
+
+---
+
+## Development
+
+### Running Tests
 
 ```bash
 pytest
 ```
 
-You can add more tests in `tests/test_recommender.py`.
+### Adding Features
+
+- **Modify `agent.py`** to change Gemini behavior or prompt
+- **Modify `playlist_manager.py`** to add new data operations
+- **Modify `app.py`** to change the UI or add new views
+
+### Resetting to Starter Data
+
+Delete `playlists.json` and restart the app — it will auto-regenerate with starter data.
 
 ---
 
-## Experiments You Tried
+## Notes
 
-
-I tried changing the genre and mood weights, and tested edge cases like empty or unknown preferences. The system worked well for common profiles but gave zero scores for missing or rare preferences.
+- **No database required** — all data stored in a simple JSON file
+- **No login system** — perfect for personal/classroom use
+- **Privacy** — your playlists and descriptions are only sent to Gemini; not stored externally
+- **Free Tier** — Google's Gemini API has a free tier with generous limits
 
 ---
 
-## Limitations and Risks
+## Architecture
 
-
-The system only works on a small catalog, does not use lyrics or tempo, and can over-favor common genres or moods. It does not handle missing or unknown preferences well.
-
-Examples:
-
-- It only works on a tiny catalog
-- It does not understand lyrics or language
-- It might over favor one genre or mood
-
-You will go deeper on this in your model card.
+```
+User Input (Streamlit UI)
+         ↓
+    app.py (renders UI, manages state)
+         ↓
+    agent.py (talks to Gemini API)
+         ↓
+    Google Gemini (analyzes song)
+         ↓
+    Parse JSON response
+         ↓
+    playlist_manager.py (save to JSON)
+         ↓
+    playlists.json (persistent storage)
+```
 
 ---
 
 ## Reflection
 
-Read and complete `model_card.md`:
+- **AI During Development** — During the Design and Development proccess of the project I used Claused to help me craft the playlist JSON and how it was structured. I found that my original design of the JSON structure was unessesarily complicated, but Claude helped me restrucutre it.
 
-[**Model Card**](model_card.md)
+- **Future Improvments** — If I were to expand aupon this project I would try to find a way to load the users spotify or apple music library. This would make the application legitamatley usable and much more impactful.
 
 
-I learned that recommenders use simple rules to turn data into predictions, but these rules can create bias or filter bubbles. I was surprised by how strict the system is and how it can miss good recommendations for unusual users. Human judgment is still important in real systems.
-
----
-
-## 7. `model_card_template.md`
-
-Combines reflection and model card framing from the Module 3 guidance. :contentReference[oaicite:2]{index=2}  
-
-```markdown
-# 🎧 Model Card - Music Recommender Simulation
-
-## 1. Model Name
-
-Give your recommender a name, for example:
-
-> VibeFinder 1.0
-
----
-
-## 2. Intended Use
-
-- What is this system trying to do
-- Who is it for
-
-Example:
-
-> This model suggests 3 to 5 songs from a small catalog based on a user's preferred genre, mood, and energy level. It is for classroom exploration only, not for real users.
-
----
-
-## 3. How It Works (Short Explanation)
-
-Describe your scoring logic in plain language.
-
-- What features of each song does it consider
-- What information about the user does it use
-- How does it turn those into a number
-
-Try to avoid code in this section, treat it like an explanation to a non programmer.
-
----
-
-## 4. Data
-
-Describe your dataset.
-
-- How many songs are in `data/songs.csv`
-- Did you add or remove any songs
-- What kinds of genres or moods are represented
-- Whose taste does this data mostly reflect
-
----
-
-## 5. Strengths
-
-Where does your recommender work well
-
-You can think about:
-- Situations where the top results "felt right"
-- Particular user profiles it served well
-- Simplicity or transparency benefits
-
----
-
-## 6. Limitations and Bias
-
-Where does your recommender struggle
-
-Some prompts:
-- Does it ignore some genres or moods
-- Does it treat all users as if they have the same taste shape
-- Is it biased toward high energy or one genre by default
-- How could this be unfair if used in a real product
-
----
-
-## 7. Evaluation
-
-How did you check your system
-
-Examples:
-- You tried multiple user profiles and wrote down whether the results matched your expectations
-- You compared your simulation to what a real app like Spotify or YouTube tends to recommend
-- You wrote tests for your scoring logic
-
-You do not need a numeric metric, but if you used one, explain what it measures.
-
----
-
-## 8. Future Work
-
-If you had more time, how would you improve this recommender
-
-Examples:
-
-- Add support for multiple users and "group vibe" recommendations
-- Balance diversity of songs instead of always picking the closest match
-- Use more features, like tempo ranges or lyric themes
-
----
-
-## 9. Personal Reflection
-
-A few sentences about what you learned:
-
-- What surprised you about how your system behaved
-- How did building this change how you think about real music recommenders
-- Where do you think human judgment still matters, even if the model seems "smart"
-
+🎵 **Enjoy your AI-powered playlist assistant!**

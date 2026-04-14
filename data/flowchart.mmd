@@ -1,13 +1,77 @@
-flowchart TD
-    A["User Input:<br/>- Favorite Genre<br/>- Favorite Mood<br/>- Target Energy"] --> B[Load Songs from songs.csv]
-    B --> C{For each Song}
-    C --> D["Check Genre Match<br/>+2.0 if match"]
-    C --> E["Check Mood Match<br/>+1.0 if match"]
-    C --> F["Calculate Energy Similarity<br/>score = 1 - |song_energy - user_energy|"]
-    D & E & F --> G["Sum Weighted Score<br/>score = genre + mood + energy"]
-    G --> H[Store Song and Score]
-    H --> I{All Songs Scored?}
-    I -- No --> C
-    I -- Yes --> J[Sort Songs by Score Descending]
-    J --> K[Select Top K Songs]
-    K --> L["Output:<br/>Top K Recommendations<br/>[Title, Artist, Score, Explanation]"]
+graph TB
+    Start["🚀 App Start"]
+    
+    subgraph Init["⚙️ Initialization"]
+        LoadEnv["Load .env"]
+        InitClient["Initialize<br/>Gemini Client"]
+        InitPrompt["Initialize<br/>System Prompt"]
+        LoadPlaylists["Load playlists.json"]
+    end
+
+    MainView["📍 Main View<br/>Ready for Input"]
+
+    subgraph AddSongFlow["🎵 Add Song Flow"]
+        GetInput["1. User Enters:<br/>• Title<br/>• Artist<br/>• Vibe Description"]
+        CallAgent["2. Call Agent<br/>analyze_song_for_playlists()"]
+        LoadPlaylistData["3. Load Full<br/>Playlist Library"]
+        BuildRequest["4. Build API Request<br/>with System Prompt"]
+        CallGemini["5. Call Gemini API"]
+        AnalyzeInAI["6. AI Analyzes & Returns<br/>Mood Tags + Matches"]
+        ParseResponse["7. Parse JSON response"]
+        FormatUI["8. Format for UI<br/>Separate Strong/Borderline"]
+        DisplayResults["9. Display Matches<br/>& Suggestions to User"]
+    end
+
+    UserSelect["👤 User Selects<br/>Playlists & Confirms"]
+
+    subgraph SaveFlow["💾 Save Song to Playlists"]
+        CheckDup["Check for Duplicates"]
+        BuildEntry["Build Song Entry<br/>with Timestamp"]
+        WriteJSON["Write to playlists.json"]
+        ShowSuccess["Show Success Message"]
+    end
+
+    BrowseView["🎧 Browse Mode"]
+    ViewPlaylist["View Playlist Details<br/>& Songs"]
+
+    %% Flows
+    Start --> LoadEnv
+    LoadEnv --> InitClient
+    InitClient --> InitPrompt
+    InitPrompt --> LoadPlaylists
+    LoadPlaylists --> MainView
+
+    MainView --> GetInput
+    GetInput --> CallAgent
+    CallAgent --> LoadPlaylistData
+    LoadPlaylistData --> BuildRequest
+    BuildRequest --> CallGemini
+    CallGemini --> AnalyzeInAI
+    AnalyzeInAI --> ParseResponse
+    ParseResponse --> FormatUI
+    FormatUI --> DisplayResults
+    
+    DisplayResults --> UserSelect
+    UserSelect --> CheckDup
+    CheckDup --> BuildEntry
+    BuildEntry --> WriteJSON
+    WriteJSON --> ShowSuccess
+    ShowSuccess --> MainView
+    
+    MainView --> BrowseView
+    BrowseView --> ViewPlaylist
+    ViewPlaylist --> MainView
+
+    %% Styling
+    classDef startup fill:#3fb950,stroke:#0d1117,stroke-width:2px,color:#fff
+    classDef view fill:#79c0ff,stroke:#0d1117,stroke-width:2px,color:#000
+    classDef process fill:#a371f7,stroke:#0d1117,stroke-width:2px,color:#fff
+    classDef external fill:#f0883e,stroke:#0d1117,stroke-width:2px,color:#fff
+    classDef save fill:#3fb950,stroke:#0d1117,stroke-width:2px,color:#fff
+    classDef storage fill:#79c0ff,stroke:#0d1117,stroke-width:2px,color:#000
+
+    class LoadEnv,InitClient,InitPrompt,LoadPlaylists startup
+    class MainView,BrowseView,ViewPlaylist view
+    class GetInput,CallAgent,LoadPlaylistData,BuildRequest,CallGemini,AnalyzeInAI,ParseResponse,FormatUI,DisplayResults process
+    class CheckDup,BuildEntry,WriteJSON,ShowSuccess save
+    class UserSelect storage
