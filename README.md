@@ -5,7 +5,6 @@
 ## Overview
 
 The **Playlist Assistant** is an AI-powered app that helps you manage music playlists intelligently. You describe a song and how it makes you feel, and the AI analyzes it to place it into matching playlists. The app can even suggest creating new playlists when nothing fits!
-Originally this was a music recommendation application. The application used a basic weight score recommender system to group songs by their genre, mood and energy. Recommendation reasoning was also incorporated into the final response for transparency.
 
 ### Original Project (Modules 1-3)
 
