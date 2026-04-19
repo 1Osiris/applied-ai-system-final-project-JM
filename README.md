@@ -260,7 +260,7 @@ playlist-assistant/
 │   └── recommender.py    # (Original music recommender)
 ├── playlists.json        # Playlist data (auto-created with starter data)
 ├── requirements.txt      # Python dependencies
-├── .env                  # API keys (NEVER commit this!)
+├── .env                  # API keys 
 ├── .env.example          # Template for .env
 └── README.md             # Original project README
 ```
