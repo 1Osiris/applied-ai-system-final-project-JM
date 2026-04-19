@@ -64,7 +64,7 @@ This installs:
 
 ```env
 GEMINI_API_KEY=your_api_key_here
-GEMINI_MODEL=gemini-2.0-flash
+GEMINI_MODEL=gemini-2.5-flash
 ```
 
 ✅ **Your API key is already configured in `.env`** — you're ready to go!
@@ -202,7 +202,7 @@ playlist-assistant/
 
 ## API Integration (Gemini)
 
-The app uses **Google Gemini 2.0 Flash** to analyze songs. Here's what happens:
+The app uses **Google Gemini 2.5 Flash** to analyze songs. Here's what happens:
 
 1. **You describe a song's vibe** (e.g., "melancholy, reflective, great for late night")
 2. **Gemini receives:**
