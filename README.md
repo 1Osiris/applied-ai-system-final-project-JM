@@ -7,6 +7,10 @@
 The **Playlist Assistant** is an AI-powered app that helps you manage music playlists intelligently. You describe a song and how it makes you feel, and the AI analyzes it to place it into matching playlists. The app can even suggest creating new playlists when nothing fits!
 Originally this was a music recommendation application. The application used a basic weight score recommender system to group songs by their genre, mood and energy. Recommendation reasoning was also incorporated into the final response for transparency.
 
+### Original Project (Modules 1-3)
+
+The original project was **Music Mood Recommender (rule-based prototype)**. Its goal was to recommend playlists by scoring songs against genre, mood, and energy metadata using fixed weighting logic. It could produce transparent recommendation reasoning, but it was limited by manual rules and had less flexibility when users described songs in natural language.
+
 
 ## Project Goals
 
@@ -138,6 +142,70 @@ How it feels: introspective, moody, emotional late-night drive energy
 - The app leaves **Romantic Evening** unchecked as borderline.
 - After clicking **Confirm & Add Song**, a success message confirms the song was saved to selected playlists.
 
+### Sample Input / Output #2
+
+**Input**
+
+```text
+Song title: Titanium
+Artist: David Guetta ft. Sia
+How it feels: powerful, motivational, high-energy gym song
+```
+
+**Output**
+
+```json
+{
+   "generated_mood_tags": ["energetic", "motivational", "confident", "high-energy"],
+   "matches": {
+      "strong": [
+         {
+            "playlist": "Workout Motivation",
+            "reason": "Strong tempo and empowering tone align closely with workout-focused high-energy songs."
+         }
+      ],
+      "borderline": [
+         {
+            "playlist": "Morning Energy",
+            "reason": "The uplifting mood is relevant, but intensity is higher than typical morning tracks."
+         }
+      ]
+   },
+   "suggest_new_playlist": null
+}
+```
+
+### Sample Input / Output #3
+
+**Input**
+
+```text
+Song title: Daylight Reverie
+Artist: Unknown Artist
+How it feels: dreamy electronic ambience for focused coding and studying
+```
+
+**Output**
+
+```json
+{
+   "generated_mood_tags": ["ambient", "focus", "dreamy", "electronic"],
+   "matches": {
+      "strong": [],
+      "borderline": [
+         {
+            "playlist": "Late Night Chill",
+            "reason": "Calm reflective texture overlaps, but the song is more concentration-focused than late-night emotional."
+         }
+      ]
+   },
+   "suggest_new_playlist": {
+      "name": "Deep Focus Flow",
+      "vibe": "Steady, low-distraction tracks for coding, writing, or studying."
+   }
+}
+```
+
 ### Mode 1: Add a Song (Default)
 
 1. **Enter Song Details:**
@@ -219,6 +287,15 @@ The system prompt guides Gemini to think deeply about vibes and feelings, not ju
 
 ---
 
+## Design Decisions and Trade-offs
+
+1. **JSON storage instead of a database:** I chose `playlists.json` for simplicity and fast local iteration. The trade-off is weaker scalability and no concurrent multi-user support.
+2. **Strong vs. borderline categories:** I separated high-confidence from lower-confidence matches so users keep final control. The trade-off is one extra review step before saving.
+3. **Explainable recommendations:** The app requires reasoning strings for each suggested match to improve trust and grading transparency. The trade-off is slightly longer model outputs and occasional verbose explanations.
+4. **Gemini-driven mood extraction:** Using natural-language AI improves flexibility versus rigid keyword rules. The trade-off is external API dependency and possible response variability.
+
+---
+
 ## Troubleshooting
 
 ### "Missing GEMINI_API_KEY" Error
@@ -255,6 +332,13 @@ pip install -r requirements.txt
 ```bash
 pytest
 ```
+
+## Testing Summary
+
+- **What worked:** Core recommendation flow, JSON persistence, and playlist create/remove actions worked in manual testing; unit tests for the recommender logic executed successfully.
+- **What did not work at first:** Early prompt versions sometimes returned malformed JSON or overly broad playlist matches.
+- **How it was improved:** I added stricter response-format instructions and retry handling for invalid JSON, and clarified confidence boundaries between strong and borderline matches.
+- **What I learned:** AI features need defensive parsing, explicit schema expectations, and user confirmation checkpoints to remain reliable.
 
 ### Adding Features
 
@@ -299,9 +383,35 @@ User Input (Streamlit UI)
 
 ## Reflection
 
-- **AI During Development** — During the Design and Development proccess of the project I used Claused to help me craft the playlist JSON and how it was structured. I found that my original design of the JSON structure was unessesarily complicated, but Claude helped me restrucutre it.
+Building this project taught me that AI problem-solving is strongest when model output is treated as a recommendation, not an unquestioned final answer. Prompt design, output constraints, and validation logic were just as important as the model choice itself.
 
-- **Future Improvments** — If I were to expand aupon this project I would try to find a way to load the users spotify or apple music library. This would make the application legitamatley usable and much more impactful.
+I also learned that explainability improves user trust: showing *why* a match was suggested made the system easier to evaluate and debug. The biggest practical lesson was balancing automation with user control by introducing strong/borderline confidence buckets and explicit confirmation before writing data.
+
+If I continue this project, I would prioritize Spotify/Apple Music import and richer feedback loops so the assistant can learn from accepted/rejected matches over time.
+
+## Limitations, Bias, and Responsible Use
+
+### What are the limitations or biases in this system?
+
+1. The assistant depends on user-provided descriptions, so vague or biased language can produce weak or skewed playlist matches.
+2. Mood interpretation is subjective and culturally dependent, so the model may overfit to common Western/pop listening patterns.
+3. The system currently lacks personalization memory across sessions, so it cannot fully adapt to an individual user's long-term taste.
+4. External API behavior can vary over time, which can affect consistency even for similar inputs.
+
+### Could this AI be misused, and how would misuse be prevented?
+
+Possible misuse includes generating manipulative or inappropriate playlist labels/content, or repeatedly spamming API calls. To reduce this risk, the app keeps users in the loop by requiring manual confirmation before saving results, limits outputs to a structured schema, and can be extended with moderation checks for unsafe text before writing to storage.
+
+### What surprised me while testing reliability?
+
+The most surprising result was that small wording changes in the same song description could move a recommendation from strong to borderline. This showed that reliability is not just a model issue; prompt structure, schema enforcement, and confidence-threshold design strongly influence stability.
+
+## Collaboration with AI During Development
+
+I collaborated with AI as a design and implementation assistant, especially for prompt wording, JSON schema refinement, and edge-case handling.
+
+- **Helpful suggestion:** AI suggested separating matches into **strong** and **borderline** categories, which made the user experience much better by preserving user control instead of auto-adding songs everywhere.
+- **Flawed suggestion:** One AI suggestion initially produced overly broad mood tags and occasionally invalid JSON shape for my expected schema. I corrected this by tightening the prompt, adding stricter JSON constraints, and implementing retry/fallback validation logic.
 
 
 🎵 **Enjoy your AI-powered playlist assistant!**
